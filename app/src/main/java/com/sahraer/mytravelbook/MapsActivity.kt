@@ -1,5 +1,8 @@
 package com.sahraer.mytravelbook
 
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
@@ -15,6 +18,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+    private lateinit var locationManager: LocationManager // konum yöneticisi
+    private lateinit var locationListener: LocationListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,8 +40,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         //lat->41.0055005,lang->28.7319869
         //latitude,langitude
         val istanbul = LatLng(41.1126293,29.0073562)
-       mMap.addMarker(MarkerOptions().position(istanbul).title("İstanbul"))
+        mMap.addMarker(MarkerOptions().position(istanbul).title("İstanbul"))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(istanbul,15f))
+
+
+       //casting
+       locationManager  = this.getSystemService(LOCATION_SERVICE) as LocationManager
+
+       locationListener = object : LocationListener{
+           override fun onLocationChanged(location: Location) { //konum değiştiğinde yapılması
+               TODO("Not yet implemented")
+           }
+
+           override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+               super.onStatusChanged(provider, status, extras)
+           }
+
+       }
+
+       locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0f,locationListener)
+           
+
+
 
     }
 }
