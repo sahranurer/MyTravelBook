@@ -10,6 +10,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -27,7 +28,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.sahraer.mytravelbook.databinding.ActivityMapsBinding
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback,GoogleMap.OnMapLongClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
@@ -36,6 +37,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var permissionLauncher : ActivityResultLauncher<String>
     private lateinit var sharedPreferences: SharedPreferences
     private var trackBoolean:Boolean? = null
+    private var selectedLongitude:Double? = null
+    private var selectedLatitude:Double? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,11 +54,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         registerLauncher()
         sharedPreferences = this.getSharedPreferences("com.sahraer.mytravelbook", MODE_PRIVATE)
         trackBoolean = false
+        selectedLatitude = 0.0
+        selectedLongitude = 0.0
     }
 
    //harita hazır olunca çağrılan fonk
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        mMap.setOnMapLongClickListener(this)
         //lat->41.0055005,lang->28.7319869
         //latitude,langitude
         val istanbul = LatLng(41.1126293,29.0073562)
@@ -130,5 +136,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    override fun onMapLongClick(p0: LatLng) {
+        mMap.clear()
+        mMap.addMarker(MarkerOptions().position(p0))
+        selectedLongitude = p0.longitude
+        selectedLatitude = p0.latitude
+    }
+
+    fun save(view: View){
+
+    }
+    fun delete(view: View){
+
+    }
 
 }
