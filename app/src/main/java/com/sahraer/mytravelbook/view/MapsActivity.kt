@@ -1,8 +1,7 @@
-package com.sahraer.mytravelbook
+package com.sahraer.mytravelbook.view
 
 import android.Manifest
-import android.app.Activity
-import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
@@ -12,12 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.room.Room
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -26,7 +24,14 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
+import com.sahraer.mytravelbook.R
 import com.sahraer.mytravelbook.databinding.ActivityMapsBinding
+import com.sahraer.mytravelbook.model.Place
+import com.sahraer.mytravelbook.roomdb.PlaceDao
+import com.sahraer.mytravelbook.roomdb.PlaceDatabase
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,GoogleMap.OnMapLongClickListener {
 
@@ -39,6 +44,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,GoogleMap.OnMapLong
     private var trackBoolean:Boolean? = null
     private var selectedLongitude:Double? = null
     private var selectedLatitude:Double? = null
+    private lateinit var db:PlaceDatabase
+    private lateinit var placeDao: PlaceDao
+    val compositeDisposible = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +64,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,GoogleMap.OnMapLong
         trackBoolean = false
         selectedLatitude = 0.0
         selectedLongitude = 0.0
+
+
+
+        db= Room.databaseBuilder(applicationContext,PlaceDatabase::class.java,"Places")
+            //.allowMainThreadQueries()
+            .build()
+
+        placeDao = db.placeDao()
+
     }
 
    //harita hazır olunca çağrılan fonk
@@ -144,10 +161,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,GoogleMap.OnMapLong
     }
 
     fun save(view: View){
+        if (selectedLatitude != null && selectedLongitude != null){
+            val place = Place(binding.placeText.toString(),selectedLatitude!!,selectedLongitude!!)
+            compositeDisposible.add(
+                placeDao.insert(place)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this::handleResponse)
+            )
+        }
 
+    }
+
+    private fun handleResponse(){
+        val intent = Intent(this,MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
     }
     fun delete(view: View){
 
     }
 
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposible.clear()
+    }
 }
